@@ -14,12 +14,18 @@ class _VideoAppState extends State<VideoApp> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(
-        'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8')
-      ..initialize().then((_) {
-        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-        setState(() {});
-      });
+    try {
+      _controller = VideoPlayerController.network(
+          'https://storage.googleapis.com/gameclip-prod/videos/1202523991404998656/1202523991404998656.m3u8')
+        ..initialize().then((_) {
+          // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+          setState(() {});
+        });
+    }catch(e)
+    {
+      print(e);
+
+    }
   }
 
   @override

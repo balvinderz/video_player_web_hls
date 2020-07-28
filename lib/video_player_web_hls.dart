@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:js/js.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
+import 'package:video_player_web_hls/no_script_tag_exception.dart';
 import 'hls.dart';
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
@@ -24,6 +25,7 @@ const Map<int, String> _kErrorValueToErrorDescription = {
   2: 'A network error occurred while fetching the video, despite having previously been available.',
   3: 'An error occurred while trying to decode the video, despite having previously been determined to be usable.',
   4: 'The video has been found to be unsuitable (missing or in a format not supported by your browser).',
+  5: 'Could not load manifest'
 };
 
 // The default error message, when the error is an empty string
@@ -163,13 +165,29 @@ class _VideoPlayer {
         'videoPlayer-$textureId', (int viewId) => videoElement);
     if(uri.toString().contains("m3u8"))
     {
-      Hls hls = new Hls();
-      hls.attachMedia(videoElement);
+      try {
+        Hls hls = new Hls();
+        hls.attachMedia(videoElement);
 
-      hls.on('hlsMediaAttached',allowInterop((_,__){
-      hls.loadSource(uri.toString());
+        hls.on('hlsMediaAttached', allowInterop((_, __) {
+          hls.loadSource(uri.toString());
+        }));
+        hls.on('hlsError', allowInterop((_,dynamic data){
+          eventController.addError(PlatformException(
+            code: _kErrorValueToErrorName[2],
+            message: _kDefaultErrorMessage,
+            details: _kErrorValueToErrorDescription[5],
+          ));
 
-      }));
+
+        }));
+
+      }
+      catch(e)
+    {
+      throw NoScriptTagException();
+
+    }
     }
     else 
     videoElement.src = uri.toString();
