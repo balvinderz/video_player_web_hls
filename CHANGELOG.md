@@ -1,3 +1,5 @@
+## 0.1.3
+* Changed ends with to contains
 ## 0.1.2
 * Added example
 

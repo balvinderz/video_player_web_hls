@@ -161,7 +161,7 @@ class _VideoPlayer {
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
-    if(uri.toString().endsWith("m3u8"))
+    if(uri.toString().contains("m3u8"))
     {
       Hls hls = new Hls();
       hls.attachMedia(videoElement);
