@@ -1,3 +1,5 @@
+## 0.1.5
+* Removed android & web folder and changed ios folder
 ## 0.1.4
 * Handled some errors
 ## 0.1.3
