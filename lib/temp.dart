@@ -38,10 +38,10 @@ const String _kDefaultErrorMessage =
 /// The web implementation of [VideoPlayerPlatform].
 ///
 /// This class implements the `package:video_player` functionality for the web.
-class VideoPlayerPluginHls extends VideoPlayerPlatform {
+class VideoPlayerPlugin extends VideoPlayerPlatform {
   /// Registers this class as the default instance of [VideoPlayerPlatform].
   static void registerWith(Registrar registrar) {
-    VideoPlayerPlatform.instance = VideoPlayerPluginHls();
+    VideoPlayerPlatform.instance = VideoPlayerPlugin();
   }
 
   Map<int, _VideoPlayer> _videoPlayers = <int, _VideoPlayer>{};
@@ -74,8 +74,8 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
     String uri;
     switch (dataSource.sourceType) {
       case DataSourceType.network:
-      // Do NOT modify the incoming uri, it can be a Blob, and Safari doesn't
-      // like blobs that have changed.
+        // Do NOT modify the incoming uri, it can be a Blob, and Safari doesn't
+        // like blobs that have changed.
         uri = dataSource.uri;
         break;
       case DataSourceType.asset:
@@ -150,7 +150,7 @@ class _VideoPlayer {
   _VideoPlayer({this.uri, this.textureId});
 
   final StreamController<VideoEvent> eventController =
-  StreamController<VideoEvent>();
+      StreamController<VideoEvent>();
 
   final String uri;
   final int textureId;

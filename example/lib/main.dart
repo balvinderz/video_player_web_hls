@@ -1,7 +1,10 @@
 import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
 
-void main() => runApp(VideoApp());
+void main() {
+
+  runApp(VideoApp());
+}
 
 class VideoApp extends StatefulWidget {
   @override
@@ -16,11 +19,13 @@ class _VideoAppState extends State<VideoApp> {
     super.initState();
     try {
       _controller = VideoPlayerController.network(
-          'https://storage.googleapis.com/gameclip-prod/videos/1202523991404998656/1202523991404998656.m3u8')
+          'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8')
         ..initialize().then((_) {
           // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
           setState(() {});
         });
+      _controller.setVolume(0.0);
+
     }catch(e)
     {
       print(e);
