@@ -9,6 +9,7 @@ import 'package:js/js.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 import 'package:video_player_web_hls/no_script_tag_exception.dart';
 import 'hls.dart';
+
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
 const Map<int, String> _kErrorValueToErrorName = {
@@ -163,8 +164,7 @@ class _VideoPlayer {
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
-    if(uri.toString().contains("m3u8"))
-    {
+    if (isSupported() && uri.toString().contains("m3u8")) {
       try {
         Hls hls = new Hls();
         hls.attachMedia(videoElement);
@@ -172,32 +172,32 @@ class _VideoPlayer {
         hls.on('hlsMediaAttached', allowInterop((_, __) {
           hls.loadSource(uri.toString());
         }));
-        hls.on('hlsError', allowInterop((_,dynamic data){
+        hls.on('hlsError', allowInterop((_, dynamic data) {
           eventController.addError(PlatformException(
             code: _kErrorValueToErrorName[2],
             message: _kDefaultErrorMessage,
             details: _kErrorValueToErrorDescription[5],
           ));
-
-
         }));
 
+        videoElement.onCanPlay.listen((dynamic _) {
+          if (!isInitialized) {
+            isInitialized = true;
+            sendInitialized();
+          }
+        });
+      } catch (e) {
+        throw NoScriptTagException();
       }
-      catch(e)
-    {
-      throw NoScriptTagException();
-
+    } else {
+      videoElement.src = uri.toString();
+      videoElement.addEventListener('loadedmetadata', (_) {
+        if (!isInitialized) {
+          isInitialized = true;
+          sendInitialized();
+        }
+      });
     }
-    }
-    else 
-    videoElement.src = uri.toString();
-
-    videoElement.onCanPlay.listen((dynamic _) {
-      if (!isInitialized) {
-        isInitialized = true;
-        sendInitialized();
-      }
-    });
 
     // The error event fires when some form of error occurs while attempting to load or perform the media.
     videoElement.onError.listen((Event _) {
