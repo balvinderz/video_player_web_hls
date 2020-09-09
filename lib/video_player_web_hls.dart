@@ -171,7 +171,7 @@ class _VideoPlayer {
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
-    if (uri.toString().contains("m3u8")) {
+    if (isSupported() && uri.toString().contains("m3u8")) {
       try {
         Hls hls = new Hls();
         hls.attachMedia(videoElement);
@@ -186,18 +186,24 @@ class _VideoPlayer {
             details: _kErrorValueToErrorDescription[5],
           ));
         }));
+        videoElement.onCanPlay.listen((dynamic _) {
+          if (!isInitialized) {
+            isInitialized = true;
+            sendInitialized();
+          }
+        });
       } catch (e) {
         throw NoScriptTagException();
       }
-    } else
+    }  else {
       videoElement.src = uri.toString();
-
-    videoElement.onCanPlay.listen((dynamic _) {
-      if (!isInitialized) {
-        isInitialized = true;
-        sendInitialized();
-      }
-    });
+      videoElement.addEventListener('loadedmetadata', (_) {
+        if (!isInitialized) {
+          isInitialized = true;
+          sendInitialized();
+        }
+      });
+    }
 
     // The error event fires when some form of error occurs while attempting to load or perform the media.
     videoElement.onError.listen((Event _) {
