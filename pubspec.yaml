@@ -1,10 +1,10 @@
 name: video_player_web_hls
-description: Web platform implementation of video_player and supports hls on chrome.
+description: Web platform implementation of video_player and supports hls on chrome and other browsers.
 homepage: https://github.com/balvinderz/video_player_web_hls
 # 0.1.y+z is compatible with 1.0.0, if you land a breaking change bump
 # the version to 2.0.0.
 # See more details: https://github.com/flutter/flutter/wiki/Package-migration-to-1.0.0
-version: 0.1.5
+version: 0.1.6
 
 flutter:
   plugin:
