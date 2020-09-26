@@ -74,8 +74,8 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
     String uri;
     switch (dataSource.sourceType) {
       case DataSourceType.network:
-      // Do NOT modify the incoming uri, it can be a Blob, and Safari doesn't
-      // like blobs that have changed.
+        // Do NOT modify the incoming uri, it can be a Blob, and Safari doesn't
+        // like blobs that have changed.
         uri = dataSource.uri;
         break;
       case DataSourceType.asset:
@@ -123,7 +123,13 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
   Future<void> setVolume(int textureId, double volume) async {
     return _videoPlayers[textureId].setVolume(volume);
   }
+  @override
+  Future<void> setPlaybackSpeed(int textureId, double speed) async {
+    assert(speed > 0);
 
+    return _videoPlayers[textureId].setPlaybackSpeed(speed);
+  }
+  
   @override
   Future<void> seekTo(int textureId, Duration position) async {
     return _videoPlayers[textureId].seekTo(position);
@@ -150,7 +156,7 @@ class _VideoPlayer {
   _VideoPlayer({this.uri, this.textureId});
 
   final StreamController<VideoEvent> eventController =
-  StreamController<VideoEvent>();
+      StreamController<VideoEvent>();
 
   final String uri;
   final int textureId;
@@ -195,7 +201,7 @@ class _VideoPlayer {
       } catch (e) {
         throw NoScriptTagException();
       }
-    }  else {
+    } else {
       videoElement.src = uri.toString();
       videoElement.addEventListener('loadedmetadata', (_) {
         if (!isInitialized) {

@@ -1,3 +1,7 @@
+## 0.1.7
+* Added option to set the video playback speed on the video controller.
+## 0.1.6
+* Fixed video does not play on ios Safari.
 ## 0.1.5
 * Removed android & web folder and changed ios folder
 ## 0.1.4
