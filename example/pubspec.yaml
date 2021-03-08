@@ -23,7 +23,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  video_player: ^0.10.10
+  video_player: any
   video_player_web_hls:
     path: ../
   cupertino_icons: ^0.1.3

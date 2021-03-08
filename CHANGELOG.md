@@ -1,3 +1,5 @@
+## 0.1.9
+* Migrated to Null Safety
 ## 0.1.8
 * Fixed playback speed( Don't use 0.1.7)
 ## 0.1.7
