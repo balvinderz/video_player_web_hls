@@ -209,8 +209,10 @@ class _VideoPlayer {
               (HttpRequest xhr, url) {
                 if (headers.length == 0) return;
 
-                if (headers.containsKey("useCookies"))
+                if (headers.containsKey("useCookies")) {
                   xhr.withCredentials = true;
+                  headers.remove("useCookies");
+                }
                 headers.forEach((key, value) {
                   xhr.setRequestHeader(key, value);
                 });
