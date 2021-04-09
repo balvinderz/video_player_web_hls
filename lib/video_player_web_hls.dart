@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:html';
+import 'dart:js';
 import 'src/shims/dart_ui.dart' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -47,6 +48,11 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
 
   int _textureCounter = 1;
 
+  /// Headers to send before fetching a url
+  /// Add useCookies key to headers if you want to use cookies
+  ///
+  Map<String, String> headers = {};
+
   @override
   Future<void> init() async {
     return _disposeAllPlayers();
@@ -76,6 +82,8 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
         // Do NOT modify the incoming uri, it can be a Blob, and Safari doesn't
         // like blobs that have changed.
         uri = dataSource.uri ?? "";
+        headers = dataSource.httpHeaders;
+
         break;
       case DataSourceType.asset:
         String assetUrl = dataSource.asset!;
@@ -92,10 +100,8 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
             'web implementation of video_player cannot play local files'));
     }
 
-    final _VideoPlayer player = _VideoPlayer(
-      uri: uri,
-      textureId: textureId,
-    );
+    final _VideoPlayer player =
+        _VideoPlayer(uri: uri, textureId: textureId, headers: headers);
 
     player.initialize();
 
@@ -157,13 +163,16 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
 }
 
 class _VideoPlayer {
-  _VideoPlayer({required this.uri, required this.textureId});
+  _VideoPlayer(
+      {required this.uri, required this.textureId, required this.headers});
 
   final StreamController<VideoEvent> eventController =
       StreamController<VideoEvent>();
 
   final String uri;
   final int textureId;
+  final Map<String, String> headers;
+
   late VideoElement videoElement;
   bool isInitialized = false;
   bool isBuffering = false;
@@ -194,9 +203,23 @@ class _VideoPlayer {
         'videoPlayer-$textureId', (int viewId) => videoElement);
     if (isSupported() && uri.toString().contains("m3u8")) {
       try {
-        Hls hls = new Hls();
-        hls.attachMedia(videoElement);
+        Hls hls = new Hls(
+          HlsConfig(
+            xhrSetup: allowInterop(
+              (HttpRequest xhr, url) {
+                if (headers.length == 0) return;
 
+                if (headers.containsKey("useCookies"))
+                  xhr.withCredentials = true;
+                headers.forEach((key, value) {
+                  xhr.setRequestHeader(key, value);
+                });
+              },
+            ),
+          ),
+        );
+        hls.attachMedia(videoElement);
+        // print(hls.config.runtimeType);
         hls.on('hlsMediaAttached', allowInterop((_, __) {
           hls.loadSource(uri.toString());
         }));
@@ -215,6 +238,7 @@ class _VideoPlayer {
           setBuffering(false);
         });
       } catch (e) {
+        print(e);
         throw NoScriptTagException();
       }
     } else {

@@ -10,7 +10,7 @@ external bool isSupported();
 
 @JS()
 class Hls {
-  external factory Hls();
+   external factory Hls(HlsConfig config);
 
   @JS()
   external void loadSource(String videoSrc);
@@ -20,4 +20,16 @@ class Hls {
 
   @JS()
   external on(String event, Function callback);
+
+  external HlsConfig config;
+
+
+}
+
+@JS()
+@anonymous
+class HlsConfig{
+    @JS()
+  external Function get  xhrSetup;
+  external factory HlsConfig({Function xhrSetup});
 }
