@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:html';
 import 'dart:js';
+import 'package:sigv4/sigv4.dart';
+
 import 'src/shims/dart_ui.dart' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -82,7 +84,6 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
         // Do NOT modify the incoming uri, it can be a Blob, and Safari doesn't
         // like blobs that have changed.
         uri = dataSource.uri ?? "";
-        headers = dataSource.httpHeaders;
 
         break;
       case DataSourceType.asset:
@@ -169,9 +170,16 @@ class _VideoPlayer {
   final StreamController<VideoEvent> eventController =
       StreamController<VideoEvent>();
 
+  final _sigV4S3Client = Sigv4Client(
+    keyId: "KEYID",
+    accessKey: "SECRET",
+    region: "eu-west-1",
+    serviceName: "s3",
+  );
+
   final String uri;
   final int textureId;
-  final Map<String, String> headers;
+  Map<String, String> headers;
 
   late VideoElement videoElement;
   bool isInitialized = false;
@@ -207,6 +215,12 @@ class _VideoPlayer {
           HlsConfig(
             xhrSetup: allowInterop(
               (HttpRequest xhr, url) {
+                final Map<String, String> signedHeaders =
+                    _sigV4S3Client.signedHeaders(url);
+
+                // headers = dataSource.httpHeaders;
+                headers = signedHeaders;
+                print("signedHeaders: $signedHeaders");
                 if (headers.length == 0) return;
 
                 if (headers.containsKey("useCookies")) {

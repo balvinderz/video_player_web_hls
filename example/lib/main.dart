@@ -2,7 +2,6 @@ import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-
   runApp(VideoApp());
 }
 
@@ -18,18 +17,20 @@ class _VideoAppState extends State<VideoApp> {
   void initState() {
     super.initState();
     try {
-      _controller = VideoPlayerController.network(
-          'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8')
+      // [Video] Working Bunny https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+      // [Audio] Working Public BartusZak https://bartuszak-full-public.s3-eu-west-1.amazonaws.com/hls/01-moliere-molier-swietoszek-jak-poczela-sie-komedia-swietoszekTest.m3u8
+      // [Audio] Private BartusZak https://zak-dev-app-access-bucket.s3-eu-west-1.amazonaws.com/hls/01-moliere-molier-swietoszek-jak-poczela-sie-komedia-swietoszekTest.m3u8
+      final String path =
+          "https://zak-dev-app-access-bucket.s3-eu-west-1.amazonaws.com/hls/01-moliere-molier-swietoszek-jak-poczela-sie-komedia-swietoszekTest.m3u8";
+
+      _controller = VideoPlayerController.network(path)
         ..initialize().then((_) {
           // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
           setState(() {});
         });
-      _controller.setVolume(0.0);
-
-    }catch(e)
-    {
+      _controller.setVolume(0.5);
+    } catch (e) {
       print(e);
-
     }
   }
 
@@ -41,9 +42,9 @@ class _VideoAppState extends State<VideoApp> {
         body: Center(
           child: _controller.value.isInitialized
               ? AspectRatio(
-            aspectRatio: _controller.value.aspectRatio,
-            child: VideoPlayer(_controller),
-          )
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                )
               : Container(),
         ),
         floatingActionButton: FloatingActionButton(
