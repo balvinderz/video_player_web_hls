@@ -1,3 +1,5 @@
+## 0.1.10
+* Added Headers Support
 ## 0.1.9
 * Migrated to Null Safety
 ## 0.1.8
