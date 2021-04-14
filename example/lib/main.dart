@@ -23,7 +23,11 @@ class _VideoAppState extends State<VideoApp> {
       final String path =
           "https://zak-dev-app-access-bucket.s3-eu-west-1.amazonaws.com/hls/01-moliere-molier-swietoszek-jak-poczela-sie-komedia-swietoszekTest.m3u8";
 
-      _controller = VideoPlayerController.network(path)
+      _controller = VideoPlayerController.network(path, httpHeaders: {
+        "accessKey": "123",
+        "secretKey": "321",
+        "region": "eu-west-1"
+      })
         ..initialize().then((_) {
           // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
           setState(() {});

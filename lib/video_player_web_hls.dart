@@ -79,11 +79,17 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
     _textureCounter++;
 
     late String uri;
+    late Sigv4Client sigv4client;
     switch (dataSource.sourceType) {
       case DataSourceType.network:
         // Do NOT modify the incoming uri, it can be a Blob, and Safari doesn't
         // like blobs that have changed.
         uri = dataSource.uri ?? "";
+        sigv4client = Sigv4Client(
+            keyId: dataSource.httpHeaders['accessKey']!,
+            accessKey: dataSource.httpHeaders['secretKey']!,
+            serviceName: 's3',
+            region: dataSource.httpHeaders['region']!);
 
         break;
       case DataSourceType.asset:
@@ -101,8 +107,11 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
             'web implementation of video_player cannot play local files'));
     }
 
-    final _VideoPlayer player =
-        _VideoPlayer(uri: uri, textureId: textureId, headers: headers);
+    final _VideoPlayer player = _VideoPlayer(
+        uri: uri,
+        textureId: textureId,
+        headers: headers,
+        sigv4client: sigv4client);
 
     player.initialize();
 
@@ -164,23 +173,20 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
 }
 
 class _VideoPlayer {
-  _VideoPlayer(
-      {required this.uri, required this.textureId, required this.headers});
+  _VideoPlayer({
+    required this.uri,
+    required this.textureId,
+    required this.headers,
+    required this.sigv4client,
+  });
 
   final StreamController<VideoEvent> eventController =
       StreamController<VideoEvent>();
 
-  final _sigV4S3Client = Sigv4Client(
-    keyId: "KEYID",
-    accessKey: "SECRET",
-    region: "eu-west-1",
-    serviceName: "s3",
-  );
-
   final String uri;
   final int textureId;
   Map<String, String> headers;
-
+  final Sigv4Client sigv4client;
   late VideoElement videoElement;
   bool isInitialized = false;
   bool isBuffering = false;
@@ -216,11 +222,8 @@ class _VideoPlayer {
             xhrSetup: allowInterop(
               (HttpRequest xhr, url) {
                 final Map<String, String> signedHeaders =
-                    _sigV4S3Client.signedHeaders(url);
-
-                // headers = dataSource.httpHeaders;
+                    sigv4client.signedHeaders(url);
                 headers = signedHeaders;
-                print("signedHeaders: $signedHeaders");
                 if (headers.length == 0) return;
 
                 if (headers.containsKey("useCookies")) {
