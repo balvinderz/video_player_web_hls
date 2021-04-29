@@ -1,6 +1,6 @@
 # video_player_web_hls
 
-Supports hls on chrome.
+Supports hls on chrome and other browsers.
 
 
 

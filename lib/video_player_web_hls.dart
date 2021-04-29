@@ -176,6 +176,7 @@ class _VideoPlayer {
   late VideoElement videoElement;
   bool isInitialized = false;
   bool isBuffering = false;
+  Hls? _hls;
 
   void setBuffering(bool buffering) {
     if (isBuffering != buffering) {
@@ -203,7 +204,7 @@ class _VideoPlayer {
         'videoPlayer-$textureId', (int viewId) => videoElement);
     if (isSupported() && uri.toString().contains("m3u8")) {
       try {
-        Hls hls = new Hls(
+        _hls = new Hls(
           HlsConfig(
             xhrSetup: allowInterop(
               (HttpRequest xhr, url) {
@@ -220,12 +221,12 @@ class _VideoPlayer {
             ),
           ),
         );
-        hls.attachMedia(videoElement);
+        _hls!.attachMedia(videoElement);
         // print(hls.config.runtimeType);
-        hls.on('hlsMediaAttached', allowInterop((_, __) {
-          hls.loadSource(uri.toString());
+        _hls!.on('hlsMediaAttached', allowInterop((_, __) {
+          _hls!.loadSource(uri.toString());
         }));
-        hls.on('hlsError', allowInterop((_, dynamic data) {
+        _hls!.on('hlsError', allowInterop((_, dynamic data) {
           eventController.addError(PlatformException(
             code: _kErrorValueToErrorName[2]!,
             message: _kDefaultErrorMessage,
@@ -357,6 +358,7 @@ class _VideoPlayer {
   void dispose() {
     videoElement.removeAttribute('src');
     videoElement.load();
+    _hls?.stopLoad();
   }
 
   List<DurationRange> _toDurationRange(TimeRanges buffered) {

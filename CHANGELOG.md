@@ -1,3 +1,5 @@
+$$ 0.1.11
+* Fixed hls stream loading even after dispose is called
 ## 0.1.10
 * Added Headers Support
 ## 0.1.9

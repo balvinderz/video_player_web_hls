@@ -13,6 +13,9 @@ class Hls {
   external factory Hls(HlsConfig config);
 
   @JS()
+  external void stopLoad();
+
+  @JS()
   external void loadSource(String videoSrc);
 
   @JS()
