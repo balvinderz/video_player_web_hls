@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:html';
 import 'dart:js';
+import 'dart:math';
 import 'src/shims/dart_ui.dart' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:js/js.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
+import 'package:http/http.dart' as http;
 
 import 'hls.dart';
 import 'no_script_tag_exception.dart';
@@ -103,7 +105,7 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
     final _VideoPlayer player =
         _VideoPlayer(uri: uri, textureId: textureId, headers: headers);
 
-    player.initialize();
+    await player.initialize();
 
     _videoPlayers[textureId] = player;
     return textureId;
@@ -188,7 +190,30 @@ class _VideoPlayer {
     }
   }
 
-  void initialize() {
+  Future<bool> _testIfM3u8() async {
+    try {
+      final headers = Map.of(this.headers);
+      if (headers.containsKey("Range") || headers.containsKey("range")) {
+        final range = (headers["Range"] ?? headers["range"])!
+            .split("bytes")[1]
+            .split("-")
+            .map((e) => int.parse(e))
+            .toList();
+        range[1] = min(range[0]+1023, range[1]);
+        headers["Range"] = "bytes=${range[0]}-${range[1]}";
+      } else {
+        headers["Range"] = "bytes=0-1023";
+      }
+      final response = await http.get(Uri.parse(uri), headers: headers);
+      final body = response.body;
+      if (!body.contains("#EXTM3U")) return false;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> initialize() async {
     videoElement = VideoElement()
       ..src = uri
       ..autoplay = false
@@ -202,7 +227,7 @@ class _VideoPlayer {
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
-    if (isSupported() && uri.toString().contains("m3u8")) {
+    if (isSupported() && (uri.toString().contains("m3u8") || await _testIfM3u8())) {
       try {
         _hls = new Hls(
           HlsConfig(
