@@ -1,3 +1,6 @@
+## 0.1.11+3
+* Improved m3u8 detection
+* Fix subsequent xhr requests withCredentials
 ## 0.1.11+2
 * Fix Changelog
 ## 0.1.11
