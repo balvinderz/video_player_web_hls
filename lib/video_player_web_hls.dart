@@ -237,10 +237,11 @@ class _VideoPlayer {
 
                 if (headers.containsKey("useCookies")) {
                   xhr.withCredentials = true;
-                  headers.remove("useCookies");
                 }
                 headers.forEach((key, value) {
-                  xhr.setRequestHeader(key, value);
+                  if (key != "useCookies") {
+                    xhr.setRequestHeader(key, value);
+                  }
                 });
               },
             ),
