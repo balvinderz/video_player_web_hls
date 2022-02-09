@@ -35,3 +35,14 @@ class HlsConfig {
 
   external factory HlsConfig({Function xhrSetup});
 }
+
+class ErrorData {
+  late final String type;
+  late final String details;
+  late final bool fatal;
+  ErrorData(dynamic errorData) {
+    type = errorData.type;
+    details = errorData.details;
+    fatal = errorData.fatal;
+  }
+}

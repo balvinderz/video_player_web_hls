@@ -253,11 +253,14 @@ class _VideoPlayer {
           _hls!.loadSource(uri.toString());
         }));
         _hls!.on('hlsError', allowInterop((_, dynamic data) {
-          eventController.addError(PlatformException(
-            code: _kErrorValueToErrorName[2]!,
-            message: _kDefaultErrorMessage,
-            details: _kErrorValueToErrorDescription[5],
-          ));
+          var _data = ErrorData(data);
+          if (_data.fatal) {
+            eventController.addError(PlatformException(
+              code: _kErrorValueToErrorName[2]!,
+              message: _data.type,
+              details: _data.details,
+            ));
+          }
         }));
         videoElement.onCanPlay.listen((dynamic _) {
           if (!isInitialized) {
