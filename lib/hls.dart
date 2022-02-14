@@ -5,7 +5,7 @@ import 'dart:html';
 
 import 'package:js/js.dart';
 
-@JS("Hls.isSupported")
+@JS('Hls.isSupported')
 external bool isSupported();
 
 @JS()
@@ -22,7 +22,7 @@ class Hls {
   external void attachMedia(VideoElement video);
 
   @JS()
-  external on(String event, Function callback);
+  external void on(String event, Function callback);
 
   external HlsConfig config;
 }
@@ -41,8 +41,8 @@ class ErrorData {
   late final String details;
   late final bool fatal;
   ErrorData(dynamic errorData) {
-    type = errorData.type;
-    details = errorData.details;
-    fatal = errorData.fatal;
+    type = errorData.type as String;
+    details = errorData.details as String;
+    fatal = errorData.fatal as bool;
   }
 }

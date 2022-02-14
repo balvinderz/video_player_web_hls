@@ -2,20 +2,21 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:js';
 import 'dart:math';
-import 'src/shims/dart_ui.dart' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+import 'package:http/http.dart' as http;
 import 'package:js/js.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
-import 'package:http/http.dart' as http;
 
 import 'hls.dart';
 import 'no_script_tag_exception.dart';
+import 'src/shims/dart_ui.dart' as ui;
 
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
-const Map<int, String> _kErrorValueToErrorName = {
+const Map<int, String> _kErrorValueToErrorName = <int, String>{
   1: 'MEDIA_ERR_ABORTED',
   2: 'MEDIA_ERR_NETWORK',
   3: 'MEDIA_ERR_DECODE',
@@ -24,7 +25,7 @@ const Map<int, String> _kErrorValueToErrorName = {
 
 // An error code value to description Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
-const Map<int, String> _kErrorValueToErrorDescription = {
+const Map<int, String> _kErrorValueToErrorDescription = <int, String>{
   1: 'The user canceled the fetching of the video.',
   2: 'A network error occurred while fetching the video, despite having previously been available.',
   3: 'An error occurred while trying to decode the video, despite having previously been determined to be usable.',
@@ -46,14 +47,14 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
     VideoPlayerPlatform.instance = VideoPlayerPluginHls();
   }
 
-  Map<int, _VideoPlayer> _videoPlayers = <int, _VideoPlayer>{};
+  final Map<int, _VideoPlayer> _videoPlayers = <int, _VideoPlayer>{};
 
   int _textureCounter = 1;
 
   /// Headers to send before fetching a url
   /// Add useCookies key to headers if you want to use cookies
   ///
-  Map<String, String> headers = {};
+  Map<String, String> headers = <String,String>{};
 
   @override
   Future<void> init() async {
@@ -64,12 +65,13 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
   Future<void> dispose(int textureId) async {
     _videoPlayers[textureId]!.dispose();
     _videoPlayers.remove(textureId);
-    return null;
+    return;
   }
 
   void _disposeAllPlayers() {
-    _videoPlayers.values
-        .forEach((_VideoPlayer videoPlayer) => videoPlayer.dispose());
+    for (final _VideoPlayer videoPlayer in _videoPlayers.values) {
+      videoPlayer.dispose();
+    }
     _videoPlayers.clear();
   }
 
@@ -83,9 +85,8 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
       case DataSourceType.network:
         // Do NOT modify the incoming uri, it can be a Blob, and Safari doesn't
         // like blobs that have changed.
-        uri = dataSource.uri ?? "";
+        uri = dataSource.uri ?? '';
         headers = dataSource.httpHeaders;
-
         break;
       case DataSourceType.asset:
         String assetUrl = dataSource.asset!;
@@ -94,12 +95,15 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
         }
         // 'webOnlyAssetManager' is only in the web version of dart:ui
         // ignore: undefined_prefixed_name
-        assetUrl = ui.webOnlyAssetManager.getAssetUrl(assetUrl);
+        assetUrl = ui.webOnlyAssetManager.getAssetUrl(assetUrl).toString();
         uri = assetUrl;
         break;
       case DataSourceType.file:
-        return Future.error(UnimplementedError(
+        return Future<int>.error(UnimplementedError(
             'web implementation of video_player cannot play local files'));
+      case DataSourceType.contentUri:
+        return Future<int>.error(UnimplementedError(
+            'web implementation of video_player cannot play content uri'));
     }
 
     final _VideoPlayer player =
@@ -192,21 +196,23 @@ class _VideoPlayer {
 
   Future<bool> _testIfM3u8() async {
     try {
-      final headers = Map.of(this.headers);
-      if (headers.containsKey("Range") || headers.containsKey("range")) {
-        final range = (headers["Range"] ?? headers["range"])!
-            .split("bytes")[1]
-            .split("-")
-            .map((e) => int.parse(e))
+      final Map<String, String> headers = Map<String,String>.of(this.headers);
+      if (headers.containsKey('Range') || headers.containsKey('range')) {
+        final List<int> range = (headers['Range'] ?? headers['range'])!
+            .split('bytes')[1]
+            .split('-')
+            .map((String e) => int.parse(e))
             .toList();
         range[1] = min(range[0]+1023, range[1]);
-        headers["Range"] = "bytes=${range[0]}-${range[1]}";
+        headers['Range'] = 'bytes=${range[0]}-${range[1]}';
       } else {
-        headers["Range"] = "bytes=0-1023";
+        headers['Range'] = 'bytes=0-1023';
       }
-      final response = await http.get(Uri.parse(uri), headers: headers);
-      final body = response.body;
-      if (!body.contains("#EXTM3U")) return false;
+      final http.Response response = await http.get(Uri.parse(uri), headers: headers);
+      final String body = response.body;
+      if (!body.contains('#EXTM3U')) {
+        return false;
+      }
       return true;
     } catch (e) {
       return false;
@@ -218,28 +224,38 @@ class _VideoPlayer {
       ..src = uri
       ..autoplay = false
       ..controls = false
-      ..style.border = 'none';
+      ..style.border = 'none'
+      ..style.height = '100%'
+      ..style.width = '100%';
 
     // Allows Safari iOS to play the video inline
     videoElement.setAttribute('playsinline', 'true');
+
+     // Set autoplay to false since most browsers won't autoplay a video unless it is muted
+    videoElement.setAttribute('autoplay', 'false');
 
     // TODO(hterkelsen): Use initialization parameters once they are available
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
-    if (isSupported() && (uri.toString().contains("m3u8") || await _testIfM3u8())) {
+
+
+    if (isSupported() && (uri.toString().contains('m3u8') || await _testIfM3u8())) {
       try {
-        _hls = new Hls(
+        _hls = Hls(
           HlsConfig(
             xhrSetup: allowInterop(
-              (HttpRequest xhr, url) {
-                if (headers.length == 0) return;
+              (HttpRequest xhr, String _) {
+                if (headers.isEmpty){
+                  return;
 
-                if (headers.containsKey("useCookies")) {
+                }
+
+                if (headers.containsKey('useCookies')) {
                   xhr.withCredentials = true;
                 }
-                headers.forEach((key, value) {
-                  if (key != "useCookies") {
+                headers.forEach((String key, String value) {
+                  if (key != 'useCookies') {
                     xhr.setRequestHeader(key, value);
                   }
                 });
@@ -249,11 +265,11 @@ class _VideoPlayer {
         );
         _hls!.attachMedia(videoElement);
         // print(hls.config.runtimeType);
-        _hls!.on('hlsMediaAttached', allowInterop((_, __) {
+        _hls!.on('hlsMediaAttached', allowInterop((dynamic _, dynamic __) {
           _hls!.loadSource(uri.toString());
         }));
-        _hls!.on('hlsError', allowInterop((_, dynamic data) {
-          var _data = ErrorData(data);
+        _hls!.on('hlsError', allowInterop((dynamic _, dynamic data) {
+          final ErrorData _data = ErrorData(data);
           if (_data.fatal) {
             eventController.addError(PlatformException(
               code: _kErrorValueToErrorName[2]!,
@@ -301,7 +317,7 @@ class _VideoPlayer {
       // The Event itself (_) doesn't contain info about the actual error.
       // We need to look at the HTMLMediaElement.error.
       // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
-      MediaError error = videoElement.error!;
+      final MediaError error = videoElement.error!;
       eventController.addError(PlatformException(
         code: _kErrorValueToErrorName[error.code]!,
         message: error.message != '' ? error.message : _kDefaultErrorMessage,
@@ -324,18 +340,18 @@ class _VideoPlayer {
   }
 
   Future<void> play() {
-    return videoElement.play().catchError((e) {
+    return videoElement.play().catchError((Object e) {
       // play() attempts to begin playback of the media. It returns
       // a Promise which can get rejected in case of failure to begin
       // playback for any reason, such as permission issues.
       // The rejection handler is called with a DomException.
       // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play
-      DomException exception = e;
+      final DomException exception = e as DomException; 
       eventController.addError(PlatformException(
         code: exception.name,
         message: exception.message,
       ));
-    }, test: (e) => e is DomException);
+    }, test: (Object e) => e is DomException);
   }
 
   void pause() {
