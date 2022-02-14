@@ -2,6 +2,7 @@
 * Made linter happy
 * Fixed height and width of platform view is not set warning
 * Not sending error event if there is a non fatal event from hls.js
+* Removed ios and macos folders*
 ## 0.1.11+3
 * Improved m3u8 detection
 * Fix subsequent xhr requests withCredentials
