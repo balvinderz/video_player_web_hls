@@ -1,4 +1,5 @@
 # video_player_web_hls
+[![Version](https://img.shields.io/pub/v/video_player_web_hls.svg)](https://pub.dev/packages/video_player_web_hls)
 
 Supports hls on chrome and other browsers.
 
