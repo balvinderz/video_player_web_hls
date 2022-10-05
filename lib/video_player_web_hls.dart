@@ -238,9 +238,9 @@ class _VideoPlayer {
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
-
-
-    if (isSupported() && (uri.toString().contains('m3u8') || await _testIfM3u8())) {
+    
+    final bool canPlayHls = videoElement.canPlayType('application/vnd.apple.mpegurl') != '';
+    if (isSupported() && (uri.toString().contains('m3u8') || await _testIfM3u8()) && !canPlayHls) {
       try {
         _hls = Hls(
           HlsConfig(

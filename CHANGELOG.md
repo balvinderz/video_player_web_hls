@@ -1,3 +1,5 @@
+## 0.1.11+5
+* Fixed video not playing on ios devices
 ## 0.1.11+4
 * Made linter happy
 * Fixed height and width of platform view is not set warning
