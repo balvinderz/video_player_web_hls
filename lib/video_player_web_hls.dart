@@ -240,7 +240,7 @@ class _VideoPlayer {
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
-    var canPlayHls = false;
+    bool canPlayHls = false;
     try {
       canPlayHls =
           videoElement.canPlayType("application/vnd.apple.mpegurl") != "";
