@@ -9,6 +9,7 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:http/http.dart' as http;
 import 'package:js/js.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
+import 'package:video_player_web_hls/src/duration_utils.dart';
 
 import 'hls.dart';
 import 'no_script_tag_exception.dart';
@@ -54,7 +55,7 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
   /// Headers to send before fetching a url
   /// Add useCookies key to headers if you want to use cookies
   ///
-  Map<String, String> headers = <String,String>{};
+  Map<String, String> headers = <String, String>{};
 
   @override
   Future<void> init() async {
@@ -196,19 +197,20 @@ class _VideoPlayer {
 
   Future<bool> _testIfM3u8() async {
     try {
-      final Map<String, String> headers = Map<String,String>.of(this.headers);
+      final Map<String, String> headers = Map<String, String>.of(this.headers);
       if (headers.containsKey('Range') || headers.containsKey('range')) {
         final List<int> range = (headers['Range'] ?? headers['range'])!
             .split('bytes')[1]
             .split('-')
             .map((String e) => int.parse(e))
             .toList();
-        range[1] = min(range[0]+1023, range[1]);
+        range[1] = min(range[0] + 1023, range[1]);
         headers['Range'] = 'bytes=${range[0]}-${range[1]}';
       } else {
         headers['Range'] = 'bytes=0-1023';
       }
-      final http.Response response = await http.get(Uri.parse(uri), headers: headers);
+      final http.Response response =
+          await http.get(Uri.parse(uri), headers: headers);
       final String body = response.body;
       if (!body.contains('#EXTM3U')) {
         return false;
@@ -231,24 +233,30 @@ class _VideoPlayer {
     // Allows Safari iOS to play the video inline
     videoElement.setAttribute('playsinline', 'true');
 
-     // Set autoplay to false since most browsers won't autoplay a video unless it is muted
+    // Set autoplay to false since most browsers won't autoplay a video unless it is muted
     videoElement.setAttribute('autoplay', 'false');
 
     // TODO(hterkelsen): Use initialization parameters once they are available
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
-    
-    final bool canPlayHls = videoElement.canPlayType('application/vnd.apple.mpegurl') != '';
-    if (isSupported() && (uri.toString().contains('m3u8') || await _testIfM3u8()) && !canPlayHls) {
+    var canPlayHls = false;
+    try {
+      canPlayHls =
+          videoElement.canPlayType("application/vnd.apple.mpegurl") != "";
+    } catch (e) {
+      print(e);
+    }
+    if (isSupported() &&
+        (uri.toString().contains('m3u8') || await _testIfM3u8()) &&
+        !canPlayHls) {
       try {
         _hls = Hls(
           HlsConfig(
             xhrSetup: allowInterop(
               (HttpRequest xhr, String _) {
-                if (headers.isEmpty){
+                if (headers.isEmpty) {
                   return;
-
                 }
 
                 if (headers.containsKey('useCookies')) {
@@ -346,7 +354,8 @@ class _VideoPlayer {
       // playback for any reason, such as permission issues.
       // The rejection handler is called with a DomException.
       // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play
-      final DomException exception = e as DomException; 
+      final DomException exception = e as DomException;
+      print(exception.message);
       eventController.addError(PlatformException(
         code: exception.name,
         message: exception.message,
@@ -386,17 +395,20 @@ class _VideoPlayer {
   }
 
   void sendInitialized() {
+    final Duration? duration =
+        convertNumVideoDurationToPluginDuration(videoElement.duration);
+    final Size? size = videoElement.videoHeight.isFinite
+        ? Size(
+            videoElement.videoWidth.toDouble(),
+            videoElement.videoHeight.toDouble(),
+          )
+        : null;
+
     eventController.add(
       VideoEvent(
-        eventType: VideoEventType.initialized,
-        duration: Duration(
-          milliseconds: (videoElement.duration * 1000).round(),
-        ),
-        size: Size(
-          videoElement.videoWidth.toDouble(),
-          videoElement.videoHeight.toDouble(),
-        ),
-      ),
+          eventType: VideoEventType.initialized,
+          duration: duration,
+          size: size),
     );
   }
 
