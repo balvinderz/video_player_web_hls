@@ -1,3 +1,5 @@
+## 1.0.0+1
+* Fixed correct data not passed in video player events
 ## 1.0.0
 * Supports null safety
 ## 0.1.11+6
