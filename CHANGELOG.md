@@ -1,3 +1,5 @@
+## 1.0.0
+* Supports null safety
 ## 0.1.11+6
 * Added fix for infinite videos
 ## 0.1.11+5
