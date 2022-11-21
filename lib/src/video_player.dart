@@ -85,7 +85,7 @@ class VideoPlayer {
         _hls = Hls(
           HlsConfig(
             xhrSetup: allowInterop(
-                  (HttpRequest xhr, String _) {
+              (HttpRequest xhr, String _) {
                 if (headers.isEmpty) {
                   return;
                 }
@@ -261,13 +261,13 @@ class VideoPlayer {
   // Sends an [VideoEventType.initialized] [VideoEvent] with info about the wrapped video.
   void _sendInitialized() {
     final Duration? duration =
-    convertNumVideoDurationToPluginDuration(_videoElement.duration);
+        convertNumVideoDurationToPluginDuration(_videoElement.duration);
 
     final Size? size = _videoElement.videoHeight.isFinite
         ? Size(
-      _videoElement.videoWidth.toDouble(),
-      _videoElement.videoHeight.toDouble(),
-    )
+            _videoElement.videoWidth.toDouble(),
+            _videoElement.videoHeight.toDouble(),
+          )
         : null;
 
     _eventController.add(
@@ -345,7 +345,7 @@ class VideoPlayer {
         headers['Range'] = 'bytes=0-1023';
       }
       final http.Response response =
-      await http.get(Uri.parse(this.uri), headers: headers);
+          await http.get(Uri.parse(this.uri), headers: headers);
       final String body = response.body;
       if (!body.contains('#EXTM3U')) {
         return false;
