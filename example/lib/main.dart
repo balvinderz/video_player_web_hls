@@ -2,7 +2,6 @@ import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-
   runApp(VideoApp());
 }
 
@@ -12,7 +11,7 @@ class VideoApp extends StatefulWidget {
 }
 
 class _VideoAppState extends State<VideoApp> {
-  VideoPlayerController _controller;
+  late VideoPlayerController _controller;
 
   @override
   void initState() {
@@ -25,11 +24,8 @@ class _VideoAppState extends State<VideoApp> {
           setState(() {});
         });
       _controller.setVolume(0.0);
-
-    }catch(e)
-    {
+    } catch (e) {
       print(e);
-
     }
   }
 
@@ -41,9 +37,9 @@ class _VideoAppState extends State<VideoApp> {
         body: Center(
           child: _controller.value.isInitialized
               ? AspectRatio(
-            aspectRatio: _controller.value.aspectRatio,
-            child: VideoPlayer(_controller),
-          )
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                )
               : Container(),
         ),
         floatingActionButton: FloatingActionButton(
