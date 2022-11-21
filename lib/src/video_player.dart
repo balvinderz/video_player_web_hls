@@ -116,8 +116,7 @@ class VideoPlayer {
             ));
           }
         }));
-
-        _videoElement.addEventListener('loadedmetadata', (_) {
+        _videoElement.onCanPlay.listen((dynamic _) {
           if (!_isInitialized) {
             _isInitialized = true;
             _sendInitialized();
@@ -129,14 +128,16 @@ class VideoPlayer {
       }
     } else {
       _videoElement.src = uri.toString();
+      _videoElement.addEventListener('durationchange', (_) {
+        if (_videoElement.duration == 0) {
+          return;
+        }
+        if (!_isInitialized) {
+          _isInitialized = true;
+          _sendInitialized();
+        }
+      });
     }
-
-    _videoElement.onCanPlay.listen((dynamic _) {
-      if (!_isInitialized) {
-        _isInitialized = true;
-        _sendInitialized();
-      }
-    });
 
     _videoElement.onCanPlayThrough.listen((dynamic _) {
       setBuffering(false);
