@@ -79,7 +79,6 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
 
     final VideoElement videoElement = VideoElement()
       ..id = 'videoElement-$textureId'
-      ..src = uri
       ..style.border = 'none'
       ..style.height = '100%'
       ..style.width = '100%';
