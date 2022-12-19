@@ -135,6 +135,11 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
   }
 
   @override
+  Future<Duration> getDuration(int textureId) async {
+    return _player(textureId).getDuration();
+  }
+
+  @override
   Stream<VideoEvent> videoEventsFor(int textureId) {
     return _player(textureId).events;
   }

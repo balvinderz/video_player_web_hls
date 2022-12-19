@@ -252,6 +252,11 @@ class VideoPlayer {
     return Duration(milliseconds: (_videoElement.currentTime * 1000).round());
   }
 
+  Duration getDuration() {
+    _sendBufferingRangesUpdate();
+    return Duration(milliseconds: (_videoElement.duration * 1000).round());
+  }
+
   /// Disposes of the current [html.VideoElement].
   void dispose() {
     _videoElement.removeAttribute('src');

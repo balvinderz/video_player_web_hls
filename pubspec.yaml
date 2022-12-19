@@ -5,6 +5,7 @@ homepage: https://github.com/balvinderz/video_player_web_hls
 # the version to 2.0.0.
 # See more details: https://github.com/flutter/flutter/wiki/Package-migration-to-1.0.0
 version: 1.0.0+1
+publish_to: none
 
 flutter:
   plugin:
@@ -19,7 +20,11 @@ dependencies:
   flutter_web_plugins:
     sdk: flutter
   http: ^0.13.3
-  video_player_platform_interface: ">=4.2.0 <6.0.0"
+  video_player_platform_interface:
+    git:
+      url: https://github.com/WinTicket/plugins.git
+      path: packages/video_player/video_player_platform_interface
+      ref: 567c7bfc83a51a01a942a7a207fa5ef2dd74adb8
   js: ^0.6.3
 dev_dependencies:
   flutter_test:
