@@ -1,3 +1,5 @@
+## 1.0.0+2
+* Added inline attribute to video player
 ## 1.0.0+1
 * Fixed correct data not passed in video player events
 ## 1.0.0
