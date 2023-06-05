@@ -1,5 +1,4 @@
 ## 1.0.0+4
-* Added maybe check
 * Updated http dependency
 ## 1.0.0+3
 * Fix video_player_platform_interface version
