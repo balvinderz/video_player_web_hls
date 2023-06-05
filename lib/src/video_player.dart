@@ -319,8 +319,9 @@ class VideoPlayer {
   bool canPlayHlsNatively() {
     bool canPlayHls = false;
     try {
+      final String canPlayType = _videoElement.canPlayType('application/vnd.apple.mpegurl');
       canPlayHls =
-          _videoElement.canPlayType("application/vnd.apple.mpegurl") != "";
+          canPlayType != '' || canPlayType != 'maybe';
     } catch (e) {}
     return canPlayHls;
   }
