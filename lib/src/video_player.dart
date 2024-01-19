@@ -107,13 +107,17 @@ class VideoPlayer {
           _hls!.loadSource(uri.toString());
         }));
         _hls!.on('hlsError', allowInterop((dynamic _, dynamic data) {
-          final ErrorData _data = ErrorData(data);
-          if (_data.fatal) {
-            _eventController.addError(PlatformException(
-              code: _kErrorValueToErrorName[2]!,
-              message: _data.type,
-              details: _data.details,
-            ));
+          try {
+            final ErrorData _data = ErrorData(data);
+            if (_data.fatal) {
+              _eventController.addError(PlatformException(
+                code: _kErrorValueToErrorName[2]!,
+                message: _data.type,
+                details: _data.details,
+              ));
+            }
+          } catch (e) {
+            debugPrint('Error parsing hlsError: $e');
           }
         }));
         _videoElement.onCanPlay.listen((dynamic _) {
