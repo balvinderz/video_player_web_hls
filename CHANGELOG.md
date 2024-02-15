@@ -1,5 +1,6 @@
 ## 1.1.1
 * Fixed video buffering crashing on slow networks (#53)
+* Updated js dependency
 ## 1.1.0
 * Updated http dependency
 ## 1.0.0+3
