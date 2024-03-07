@@ -186,6 +186,7 @@ class VideoPlayer {
         code: exception.name,
         message: exception.message,
       ));
+      return null;
     }, test: (Object e) => e is web.DOMException);
   }
 
