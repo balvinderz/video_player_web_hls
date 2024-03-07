@@ -3,13 +3,14 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
+import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
+import 'package:web/web.dart' as web;
 
-import 'src/shims/dart_ui.dart' as ui;
+
 import 'src/video_player.dart';
 
 /// The web implementation of [VideoPlayerPlatform].
@@ -66,7 +67,7 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
         if (dataSource.package != null && dataSource.package!.isNotEmpty) {
           assetUrl = 'packages/${dataSource.package}/$assetUrl';
         }
-        assetUrl = ui.webOnlyAssetManager.getAssetUrl(assetUrl);
+        assetUrl = ui_web.assetManager.getAssetUrl(assetUrl);
         uri = assetUrl;
         break;
       case DataSourceType.file:
@@ -77,16 +78,16 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
             'web implementation of video_player cannot play content uri'));
     }
 
-    final VideoElement videoElement = VideoElement()
+    final web.HTMLVideoElement videoElement = web.HTMLVideoElement()
       ..id = 'videoElement-$textureId'
       ..style.border = 'none'
       ..style.height = '100%'
       ..style.width = '100%';
 
-    videoElement.attributes['playsinline'] = 'true';
+    videoElement.setAttribute("playsinline", "true");
 
     // TODO(hterkelsen): Use initialization parameters once they are available
-    ui.platformViewRegistry.registerViewFactory(
+    ui_web.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
 
     final VideoPlayer player = VideoPlayer(

@@ -1,39 +1,40 @@
 @JS()
 library hls.js;
 
-import 'dart:html';
+import 'dart:js_interop';
 
-import 'package:js/js.dart';
+import 'package:web/web.dart' as web;
 
 @JS('Hls.isSupported')
 external bool isSupported();
 
 @JS()
+@staticInterop
 class Hls {
   external factory Hls(HlsConfig config);
+}
 
-  @JS()
+extension HlsExtension on Hls {
   external void stopLoad();
 
-  @JS()
   external void loadSource(String videoSrc);
 
-  @JS()
-  external void attachMedia(VideoElement video);
+  external void attachMedia(web.HTMLVideoElement video);
 
-  @JS()
-  external void on(String event, Function callback);
+  external void on(String event, JSFunction callback);
 
   external HlsConfig config;
 }
 
 @JS()
 @anonymous
+@staticInterop
 class HlsConfig {
-  @JS()
-  external Function get xhrSetup;
+  external factory HlsConfig({JSFunction xhrSetup});
+}
 
-  external factory HlsConfig({Function xhrSetup});
+extension HlsConfigExtension on HlsConfig {
+  external JSFunction get xhrSetup;
 }
 
 class ErrorData {
