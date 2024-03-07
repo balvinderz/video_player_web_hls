@@ -14,7 +14,7 @@ class Hls {
   external factory Hls(HlsConfig config);
 }
 
-extension Soja on Hls {
+extension HlsExtension on Hls {
   external void stopLoad();
 
   external void loadSource(String videoSrc);
@@ -33,7 +33,7 @@ class HlsConfig {
   external factory HlsConfig({JSFunction xhrSetup});
 }
 
-extension Soja2 on HlsConfig {
+extension HlsConfigExtension on HlsConfig {
   external JSFunction get xhrSetup;
 }
 

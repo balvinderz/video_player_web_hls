@@ -99,10 +99,10 @@ class VideoPlayer {
           ),
         );
         _hls!.attachMedia(_videoElement);
-        _hls!.on('hlsMediaAttached', ((web.Event _,  __) {
+        _hls!.on('hlsMediaAttached', ((String _, JSObject __) {
           _hls!.loadSource(uri.toString());
         }.toJS));
-        _hls!.on('hlsError', (int _, int data) {
+        _hls!.on('hlsError', (String _, JSObject data) {
           try {
             final ErrorData _data = ErrorData(data);
             if (_data.fatal) {
