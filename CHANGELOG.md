@@ -1,3 +1,6 @@
+## 1.1.2
+* Migrates package and tests to `package:web``.
+* Fixes infinite event loop caused by `seekTo` when the video ends.
 ## 1.1.1
 * Fixed video buffering crashing on slow networks (#53)
 * Updated js dependency
