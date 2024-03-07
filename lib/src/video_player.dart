@@ -117,10 +117,7 @@ class VideoPlayer {
           }
         }.toJS);
         _videoElement.onCanPlay.listen((dynamic _) {
-          if (!_isInitialized) {
-            _isInitialized = true;
-            _sendInitialized();
-          }
+          _onVideoElementInitialization(_);
           setBuffering(false);
         });
       } catch (e) {
@@ -132,10 +129,7 @@ class VideoPlayer {
         if (_videoElement.duration == 0) {
           return;
         }
-        if (!_isInitialized) {
-          _isInitialized = true;
-          _sendInitialized();
-        }
+        _onVideoElementInitialization(event);
       }.toJS;
       _videoElement.addEventListener('durationchange', onDurationChange);
     }
