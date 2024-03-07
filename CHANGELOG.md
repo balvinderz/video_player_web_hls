@@ -1,4 +1,4 @@
-## 1.1.2
+## 1.2.0
 * Migrates package and tests to `package:web``.
 * Fixes infinite event loop caused by `seekTo` when the video ends.
 ## 1.1.1
