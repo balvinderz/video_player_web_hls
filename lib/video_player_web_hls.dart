@@ -10,7 +10,6 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 import 'package:web/web.dart' as web;
 
-
 import 'src/video_player.dart';
 
 /// The web implementation of [VideoPlayerPlatform].
@@ -71,11 +70,9 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
         uri = assetUrl;
         break;
       case DataSourceType.file:
-        return Future<int>.error(UnimplementedError(
-            'web implementation of video_player cannot play local files'));
+        return Future<int>.error(UnimplementedError('web implementation of video_player cannot play local files'));
       case DataSourceType.contentUri:
-        return Future<int>.error(UnimplementedError(
-            'web implementation of video_player cannot play content uri'));
+        return Future<int>.error(UnimplementedError('web implementation of video_player cannot play content uri'));
     }
 
     final web.HTMLVideoElement videoElement = web.HTMLVideoElement()
@@ -88,12 +85,15 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
 
     // TODO(hterkelsen): Use initialization parameters once they are available
     ui_web.platformViewRegistry.registerViewFactory(
-        'videoPlayer-$textureId', (int viewId) => videoElement);
+      'videoPlayer-$textureId',
+      (int viewId) => videoElement,
+    );
 
     final VideoPlayer player = VideoPlayer(
-        videoElement: videoElement,
-        uri: uri,
-        headers: headers ?? Map<String, String>());
+      videoElement: videoElement,
+      uri: uri,
+      headers: headers ?? Map<String, String>(),
+    );
 
     await player.initialize();
 
@@ -140,6 +140,11 @@ class VideoPlayerPluginHls extends VideoPlayerPlatform {
   @override
   Stream<VideoEvent> videoEventsFor(int textureId) {
     return _player(textureId).events;
+  }
+
+  @override
+  Future<void> setWebOptions(int textureId, VideoPlayerWebOptions options) {
+    return _player(textureId).setOptions(options);
   }
 
   // Retrieves a [VideoPlayer] by its internal `id`.
