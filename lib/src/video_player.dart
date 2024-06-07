@@ -63,6 +63,9 @@ class VideoPlayer {
   bool _isBuffering = false;
   Hls? _hls;
 
+  /// Force use hlsjs when set to `true`.
+  bool? _hlsFallback;
+
   /// Returns the [Stream] of [VideoEvent]s from the inner [html.VideoElement].
   Stream<VideoEvent> get events => _eventController.stream;
 
@@ -77,45 +80,49 @@ class VideoPlayer {
       ..controls = false
       ..playsInline = true;
 
-    if (await shouldUseHlsLibrary()) {
+    if (_hlsFallback == true || await shouldUseHlsLibrary()) {
+      _hlsFallback = false;
       try {
         _hls = Hls(
           HlsConfig(
-            xhrSetup:
-              (web.XMLHttpRequest xhr, String _) {
-                if (headers.isEmpty) {
-                  return;
-                }
+            xhrSetup: (web.XMLHttpRequest xhr, String _) {
+              if (headers.isEmpty) {
+                return;
+              }
 
-                if (headers.containsKey('useCookies')) {
-                  xhr.withCredentials = true;
+              if (headers.containsKey('useCookies')) {
+                xhr.withCredentials = true;
+              }
+              headers.forEach((String key, String value) {
+                if (key != 'useCookies') {
+                  xhr.setRequestHeader(key, value);
                 }
-                headers.forEach((String key, String value) {
-                  if (key != 'useCookies') {
-                    xhr.setRequestHeader(key, value);
-                  }
-                });
-              }.toJS,
+              });
+            }.toJS,
           ),
         );
         _hls!.attachMedia(_videoElement);
-        _hls!.on('hlsMediaAttached', ((String _, JSObject __) {
-          _hls!.loadSource(uri.toString());
-        }.toJS));
-        _hls!.on('hlsError', (String _, JSObject data) {
-          try {
-            final ErrorData _data = ErrorData(data);
-            if (_data.fatal) {
-              _eventController.addError(PlatformException(
-                code: _kErrorValueToErrorName[2]!,
-                message: _data.type,
-                details: _data.details,
-              ));
-            }
-          } catch (e) {
-            debugPrint('Error parsing hlsError: $e');
-          }
-        }.toJS);
+        _hls!.on(
+            'hlsMediaAttached',
+            ((String _, JSObject __) {
+              _hls!.loadSource(uri.toString());
+            }.toJS));
+        _hls!.on(
+            'hlsError',
+            (String _, JSObject data) {
+              try {
+                final ErrorData _data = ErrorData(data);
+                if (_data.fatal) {
+                  _eventController.addError(PlatformException(
+                    code: _kErrorValueToErrorName[2]!,
+                    message: _data.type,
+                    details: _data.details,
+                  ));
+                }
+              } catch (e) {
+                debugPrint('Error parsing hlsError: $e');
+              }
+            }.toJS);
         _videoElement.onCanPlay.listen((dynamic _) {
           _onVideoElementInitialization(_);
           setBuffering(false);
@@ -154,6 +161,13 @@ class VideoPlayer {
       // We need to look at the HTMLMediaElement.error.
       // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
       final web.MediaError error = _videoElement.error!;
+      final errorCode = error.code;
+      if (_hls == null && _hlsFallback == null && errorCode == 4) {
+        // MEDIA_ERR_SRC_NOT_SUPPORTED
+        // Native play did not succeed, fallback to hlsjs
+        _hlsFallback = true;
+        return;
+      }
       _eventController.addError(PlatformException(
         code: _kErrorValueToErrorName[error.code]!,
         message: error.message != '' ? error.message : _kDefaultErrorMessage,
@@ -333,12 +347,11 @@ class VideoPlayer {
   }
 
   bool canPlayHlsNatively() {
-    return false;
     bool canPlayHls = false;
     try {
-      final String canPlayType = _videoElement.canPlayType('application/vnd.apple.mpegurl');
-      canPlayHls =
-          canPlayType != '';
+      final String canPlayType =
+          _videoElement.canPlayType('application/vnd.apple.mpegurl');
+      canPlayHls = canPlayType != '';
     } catch (e) {}
     return canPlayHls;
   }
