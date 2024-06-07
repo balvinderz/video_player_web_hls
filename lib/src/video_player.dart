@@ -333,6 +333,7 @@ class VideoPlayer {
   }
 
   bool canPlayHlsNatively() {
+    return false;
     bool canPlayHls = false;
     try {
       final String canPlayType = _videoElement.canPlayType('application/vnd.apple.mpegurl');
