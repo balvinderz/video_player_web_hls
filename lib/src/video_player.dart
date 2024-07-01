@@ -69,6 +69,8 @@ class VideoPlayer {
   /// Returns the [Stream] of [VideoEvent]s from the inner [html.VideoElement].
   Stream<VideoEvent> get events => _eventController.stream;
 
+  final List<StreamSubscription> _eventsSubscriptions = [];
+
   /// Initializes the wrapped [html.VideoElement].
   ///
   /// This method sets the required DOM attributes so videos can [play] programmatically,
@@ -123,10 +125,10 @@ class VideoPlayer {
                 debugPrint('Error parsing hlsError: $e');
               }
             }.toJS);
-        _videoElement.onCanPlay.listen((dynamic _) {
+        _eventsSubscriptions.add(_videoElement.onCanPlay.listen((dynamic _) {
           _onVideoElementInitialization(_);
           setBuffering(false);
-        });
+        }));
       } catch (e) {
         throw NoScriptTagException();
       }
@@ -137,26 +139,26 @@ class VideoPlayer {
           return;
         }
         _onVideoElementInitialization(event);
-      }.toJS;
-      _videoElement.addEventListener('durationchange', onDurationChange);
+      };
+      _eventsSubscriptions
+          .add(_videoElement.onDurationChange.listen(onDurationChange));
     }
 
-    _videoElement.onCanPlayThrough.listen((dynamic _) {
+    _eventsSubscriptions.add(_videoElement.onCanPlayThrough.listen((dynamic _) {
       setBuffering(false);
-    });
+    }));
 
-    _videoElement.onPlaying.listen((dynamic _) {
+    _eventsSubscriptions.add(_videoElement.onPlaying.listen((dynamic _) {
       setBuffering(false);
-    });
+    }));
 
-    _videoElement.onWaiting.listen((dynamic _) {
+    _eventsSubscriptions.add(_videoElement.onWaiting.listen((dynamic _) {
       setBuffering(true);
       _sendBufferingRangesUpdate();
-    });
+    }));
 
     // The error event fires when some form of error occurs while attempting to load or perform the media.
-    _videoElement.onError.listen((web.Event _) {
-      setBuffering(false);
+    _eventsSubscriptions.add(_videoElement.onError.listen((web.Event _) {
       // The Event itself (_) doesn't contain info about the actual error.
       // We need to look at the HTMLMediaElement.error.
       // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
@@ -166,19 +168,25 @@ class VideoPlayer {
         // MEDIA_ERR_SRC_NOT_SUPPORTED
         // Native play did not succeed, fallback to hlsjs
         _hlsFallback = true;
+        // Cancel all event listeners and re initialize
+        for (final sub in _eventsSubscriptions) {
+          sub.cancel();
+        }
+        initialize();
         return;
       }
+      setBuffering(false);
       _eventController.addError(PlatformException(
         code: _kErrorValueToErrorName[error.code]!,
         message: error.message != '' ? error.message : _kDefaultErrorMessage,
         details: _kErrorValueToErrorDescription[error.code],
       ));
-    });
+    }));
 
-    _videoElement.onEnded.listen((dynamic _) {
+    _eventsSubscriptions.add(_videoElement.onEnded.listen((dynamic _) {
       setBuffering(false);
       _eventController.add(VideoEvent(eventType: VideoEventType.completed));
-    });
+    }));
   }
 
   /// Attempts to play the video.
@@ -287,6 +295,9 @@ class VideoPlayer {
     }
     _videoElement.load();
     _hls?.stopLoad();
+    for (final sub in _eventsSubscriptions) {
+      sub.cancel();
+    }
   }
 
   // Sends an [VideoEventType.initialized] [VideoEvent] with info about the wrapped video.
