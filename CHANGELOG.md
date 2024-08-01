@@ -1,3 +1,6 @@
+## 1.2.2
+* Fallback to hlsjs when native player fails
+* Fixed some m3u8 files that could not be played normally
 ## 1.2.1
 * Fixes web options not being exposed by the library
 ## 1.2.0
