@@ -144,6 +144,9 @@ class VideoPlayer {
           .add(_videoElement.onDurationChange.listen(onDurationChange));
     }
 
+    // Needed for Safari iOS 17, which may not send `canplay`.
+    _videoElement.onLoadedMetadata.listen(_onVideoElementInitialization);
+
     _eventsSubscriptions.add(_videoElement.onCanPlayThrough.listen((dynamic _) {
       setBuffering(false);
     }));
