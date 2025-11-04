@@ -126,7 +126,7 @@ class VideoPlayer {
               }
             }.toJS);
         _eventsSubscriptions.add(_videoElement.onCanPlay.listen((dynamic _) {
-          _onVideoElementInitialization(_) ;
+          _onVideoElementInitialization(_);
           setBuffering(false);
         }));
       } catch (e) {
@@ -148,14 +148,17 @@ class VideoPlayer {
     _videoElement.onLoadedMetadata.listen(_onVideoElementInitialization);
 
     _eventsSubscriptions.add(_videoElement.onCanPlayThrough.listen((dynamic _) {
+      _onVideoElementInitialization(_);
       setBuffering(false);
     }));
 
     _eventsSubscriptions.add(_videoElement.onPlaying.listen((dynamic _) {
+      _onVideoElementInitialization(_);
       setBuffering(false);
     }));
 
     _eventsSubscriptions.add(_videoElement.onWaiting.listen((dynamic _) {
+      _onVideoElementInitialization(_);
       setBuffering(true);
       _sendBufferingRangesUpdate();
     }));
@@ -305,16 +308,14 @@ class VideoPlayer {
 
   // Sends an [VideoEventType.initialized] [VideoEvent] with info about the wrapped video.
   void _sendInitialized() {
+    int width = _videoElement.videoWidth;
+    int height = _videoElement.videoHeight;
+    if (width == 0 && height == 0) return;
     final Duration? duration =
         convertNumVideoDurationToPluginDuration(_videoElement.duration);
-
     final Size? size = _videoElement.videoHeight.isFinite
-        ? Size(
-            _videoElement.videoWidth.toDouble(),
-            _videoElement.videoHeight.toDouble(),
-          )
+        ? Size(width.toDouble(), height.toDouble())
         : null;
-
     _eventController.add(
       VideoEvent(
         eventType: VideoEventType.initialized,
@@ -322,6 +323,7 @@ class VideoPlayer {
         size: size,
       ),
     );
+    _isInitialized = true;
   }
 
   /// Caches the current "buffering" state of the video.
@@ -360,21 +362,8 @@ class VideoPlayer {
     return durationRange;
   }
 
-  bool canPlayHlsNatively() {
-    bool canPlayHls = false;
-    try {
-      final String canPlayType =
-          _videoElement.canPlayType('application/vnd.apple.mpegurl');
-      canPlayHls = canPlayType != '';
-    } catch (e) {}
-    return canPlayHls;
-  }
-
-  Future<bool> shouldUseHlsLibrary() async {
-    return isSupported() &&
-        (uri.toString().contains('m3u8') || await _testIfM3u8()) &&
-        !canPlayHlsNatively();
-  }
+  Future<bool> shouldUseHlsLibrary() async =>
+      isSupported() && (uri.toString().contains('m3u8') || await _testIfM3u8());
 
   Future<bool> _testIfM3u8() async {
     try {
@@ -438,7 +427,6 @@ class VideoPlayer {
   // the rest of the calls.
   void _onVideoElementInitialization(Object? _) {
     if (!_isInitialized) {
-      _isInitialized = true;
       _sendInitialized();
     }
   }

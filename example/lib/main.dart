@@ -5,54 +5,159 @@ void main() {
   runApp(VideoApp());
 }
 
-class VideoApp extends StatefulWidget {
-  @override
-  _VideoAppState createState() => _VideoAppState();
-}
+const hlsUrl =
+    'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.mp4/.m3u8';
 
-class _VideoAppState extends State<VideoApp> {
-  late VideoPlayerController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    try {
-      _controller = VideoPlayerController.network(
-          'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8')
-        ..initialize().then((_) {
-          // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-          setState(() {});
-        });
-      _controller.setVolume(0.0);
-    } catch (e) {
-      print(e);
-    }
-  }
-
+class VideoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Video Demo',
       home: Scaffold(
         body: Center(
-          child: _controller.value.isInitialized
-              ? AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
-                )
-              : Container(),
+          child: Builder(
+              builder: (context) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        DefaultAspectRatioVideo()));
+                          },
+                          child: Text('Default AspectRatio')),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        CustomAspectRatioVideo()));
+                          },
+                          child: Text('Custom AspectRatio'))
+                    ],
+                  )),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            setState(() {
-              _controller.value.isPlaying
-                  ? _controller.pause()
-                  : _controller.play();
-            });
-          },
-          child: Icon(
-            _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-          ),
+      ),
+    );
+  }
+}
+
+class DefaultAspectRatioVideo extends StatefulWidget {
+  @override
+  State createState() => _DefaultAspectRatioVideoState();
+}
+
+class _DefaultAspectRatioVideoState extends State<DefaultAspectRatioVideo> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    try {
+      _controller = VideoPlayerController.networkUrl(Uri.parse(hlsUrl))
+        ..initialize().then((_) {
+          playPause();
+        });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void playPause() => setState(() {
+        _controller.value.isPlaying ? _controller.pause() : _controller.play();
+      });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Default AspectRatio'),
+      ),
+      body: Center(
+        child: _controller.value.isInitialized
+            ? AspectRatio(
+                aspectRatio: _controller.value.aspectRatio,
+                child: VideoPlayer(_controller),
+              )
+            : SizedBox(),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: playPause,
+        child: Icon(
+          _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+}
+
+class CustomAspectRatioVideo extends StatefulWidget {
+  @override
+  State createState() => _CustomAspectRatioVideoState();
+}
+
+class _CustomAspectRatioVideoState extends State<CustomAspectRatioVideo> {
+  late VideoPlayerController _controller;
+  double width = 0, height = 0, aspectRatio = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    try {
+      width = 800;
+      height = 800;
+      aspectRatio = height / width;
+      _controller = VideoPlayerController.networkUrl(Uri.parse(hlsUrl))
+        ..initialize().then((_) {
+          // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+          playPause();
+        });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void playPause() => setState(() {
+        _controller.value.isPlaying ? _controller.pause() : _controller.play();
+      });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Custom AspectRatio'),
+      ),
+      body: Center(
+        child: _controller.value.isInitialized
+            ? AspectRatio(
+                aspectRatio: aspectRatio,
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: _controller.value.size.width,
+                    height: _controller.value.size.height,
+                    child: VideoPlayer(
+                      _controller,
+                    ),
+                  ),
+                ),
+              )
+            : SizedBox(),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: playPause,
+        child: Icon(
+          _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
         ),
       ),
     );

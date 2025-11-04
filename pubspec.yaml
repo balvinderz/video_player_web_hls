@@ -18,8 +18,8 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
-  http: ^1.0.0
-  video_player_platform_interface: ^6.2.0
+  http: ^1.5.0
+  video_player_platform_interface: ^6.6.0
   web: ">=1.0.0 <2.0.0"
 dev_dependencies:
   flutter_test:
